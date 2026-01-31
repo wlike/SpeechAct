@@ -1,7 +1,7 @@
- **SpeechAct: Towards Generating Whole-body Motion from Speech** 
+ **SpeechAct: Towards Generating Whole-body Motion from Speech**
 
 
-1.Setup environment
+1. Setup environment
 
 Create conda environment:
 
@@ -10,7 +10,7 @@ conda env create -f environment.yml
 conda activate speechact
 ```
 
-2.Prepare models
+2. Prepare models
 
 - Go to "WavLM" folder and download "WavLM-large.pt".
 
@@ -19,7 +19,8 @@ and place it in ``path-to-SpeechAct/visualise/smplx``.
 
 - Download [pretrained models](https://drive.google.com/file/d/1FPalJ3NK5EY_kzmBa6LChz2vN48ZNbSZ/view?usp=drive_link), extract to the folder ``path-to-SpeechAct/checkpoints``.
 
-2.Test
+3. Test
+
 
 ```
 python demo.py --infer --audio_file test.wav --speaker_names scott
