@@ -143,6 +143,13 @@ class TrainWrapper(TrainWrapperBaseClass):
                     # print(i.shape)
                     pred_pose = self.generator(i, None, id, time_steps=frame // 10)[0]
                     pred_poses.append(pred_pose.cpu())
+                    # Release GPU tensors promptly for very long audio
+                    try:
+                        del pred_pose
+                    except Exception:
+                        pass
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
                     # print(pred_pose.shape)
                 pred_poses = torch.cat(pred_poses, 1).numpy()
             else:
