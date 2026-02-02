@@ -190,7 +190,11 @@ def render_pose(beta, pose, expression, file_name, audio_path):
                 point_size=1.0,
             )
         rgb, _ = renderer.render(scene, flags=RenderFlags.SHADOWS_DIRECTIONAL)
-        cv2.imwrite(osp.join(r"test_pictures", str(frame) + ".jpg"), rgb)
+        # OpenCV uses the BGR order by default
+        cv2.imwrite(
+            osp.join(r"test_pictures", str(frame) + ".jpg"),
+            cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
+        )
         # imageio expects RGB; pyrender returns RGB already, keep as-is.
         writer.append_data(rgb)
 
