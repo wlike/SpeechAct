@@ -99,7 +99,7 @@ def render_pose(beta, pose, expression, file_name, audio_path):
         ]
     ).reshape(-1, 3)
 
-    # Stream frames directly to dist to avoid holding the whole video in RAM.
+    # Stream frames directly to disk to avoid holding the whole video in RAM.
     os.makedirs("videos", exist_ok=True)
     os.makedirs("test_pictures", exist_ok=True)
     video_path = osp.join(r"videos", file_name + ".mp4")
@@ -195,12 +195,12 @@ def render_pose(beta, pose, expression, file_name, audio_path):
                 point_size=1.0,
             )
         rgb, _ = renderer.render(scene, flags=RenderFlags.SHADOWS_DIRECTIONAL)
-        # OpenCV uses BGR order by default
+        # OpenCV uses the BGR order by default
         cv2.imwrite(
             osp.join(r"test_pictures", str(frame) + ".jpg"),
             cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
         )
-        # imageio expects RGB order, pyrender returns RGB already, keep as-is.
+        # imageio expects the RGB order, pyrender returns RGB already, keep as-is.
         writer.append_data(rgb)
 
         # Help GC for large per-frame objects (scene contains GPU handles/textures/etc.)
