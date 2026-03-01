@@ -1,0 +1,29 @@
+numpy
+scipy
+
+# 多媒体与图像
+ffmpeg
+tqdm
+
+# 核心深度学习库
+torch==1.13.1
+torchaudio==0.13.1
+transformers==4.22.2
+tensorboard
+tensorboardX
+huggingface-hub
+hf-transfer==0.1.4
+einops
+librosa
+soundfile
+imageio
+imageio-ffmpeg
+moviepy
+opencv-python
+pytorch-lightning
+
+# 3D 相关库
+trimesh
+smplx
+pyrender
+pyglet==1.5.27

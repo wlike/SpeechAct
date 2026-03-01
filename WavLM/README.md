@@ -4,20 +4,23 @@
 <!--**Pre-trained models for speech related tasks**-->
 
 
- [**WavLM**](https://arxiv.org/pdf/2110.13900.pdf) : **WavLM: Large-Scale Self-Supervised  Pre-training   for Full Stack Speech Processing**
+ [**WavLM**](https://arxiv.org/pdf/2110.13900.pdf) : **Large-Scale Self-Supervised Pre-training for Full Stack Speech Processing**
 
 Official PyTorch implementation and pretrained models of WavLM
 
+- Dec 2021: An interesting speaker verification demo on [HuggingFace](https://huggingface.co/spaces/microsoft/wavlm-speaker-verification). You can have a try!
+- Dec 2021: WavLM Large Release and [HuggingFace Support](https://huggingface.co/models?other=wavlm)
+- Nov 2021: release code and pretrained models (WavLM Base and WavLM Base+)
 - Oct 2021: release preprint in [arXiv](https://arxiv.org/pdf/2110.13900.pdf)
 
 ## Pre-Trained Models
 Model | Pre-training Dataset | Fine-tuning Dataset | Model
 |---|---|---|---
-WavLM Base |  [960 hrs LibriSpeech](http://www.openslr.org/12)| -  | [Azure Storage](https://msranlcmtteamdrive.blob.core.windows.net/share/wavlm/WavLM-Base.pt?sv=2020-04-08&st=2021-11-05T00%3A35%3A31Z&se=2022-11-06T00%3A35%3A00Z&sr=b&sp=r&sig=JljnRVzyHY6AjHzhVmHV5KyQQCvvGfgp9D2M02oGJBU%3D) <br> [Google Drive](https://drive.google.com/file/d/19-C7SMQvEFAYLG5uc47NX_MY03JCbI4x/view?usp=sharing)
-WavLM Base+ | [60k hrs Libri-Light](https://github.com/facebookresearch/libri-light) + [10k hrs GigaSpeech](https://github.com/SpeechColab/GigaSpeech) + [24k hrs VoxPopuli](https://github.com/facebookresearch/voxpopuli/tree/main)| -  |  [Azure Storage](https://msranlcmtteamdrive.blob.core.windows.net/share/wavlm/WavLM-Base+.pt?sv=2020-04-08&st=2021-11-05T00%3A34%3A47Z&se=2022-10-06T00%3A34%3A00Z&sr=b&sp=r&sig=Gkf1IByHaIn1t%2FVEd9D6WHjZ3zu%2Fk5eSdoj21UytKro%3D) <br> [Google Drive](https://drive.google.com/file/d/1PlbT_9_B4F9BsD_ija84sUTVw7almNX8/view?usp=sharing) 
-WavLM Large | [60k hrs Libri-Light](https://github.com/facebookresearch/libri-light) + [10k hrs GigaSpeech](https://github.com/SpeechColab/GigaSpeech) + [24k hrs VoxPopuli](https://github.com/facebookresearch/voxpopuli/tree/main)| -  | [Azure Storage](https://msranlcmtteamdrive.blob.core.windows.net/share/wavlm/WavLM-Large.pt?sv=2020-08-04&st=2021-11-22T10%3A03%3A53Z&se=2022-11-23T10%3A03%3A00Z&sr=b&sp=r&sig=3kB8dwTCyIS8YQ7gW5oXmDrXV%2FAaLmoxBS37oPpFsz4%3D) <br> [Google Drive](https://drive.google.com/file/d/1p8nbj16b7YA16sqPZ4E0JUL-oIDUBGwU/view?usp=sharing) 
+WavLM Base |  [960 hrs LibriSpeech](http://www.openslr.org/12)| -  | [Azure Storage](https://valle.blob.core.windows.net/share/wavlm/WavLM-Base.pt?sv=2021-10-04&st=2024-04-04T07%3A15%3A11Z&se=2034-04-05T07%3A15%3A00Z&sr=c&sp=rl&sig=xH3MbkMqHPLBI5gN%2Frt9H4J8Ai%2BtUnkduo7KGpkLbdA%3D) <br> [Google Drive](https://drive.google.com/file/d/1BhTPLUkfN6e2xkqR8LEm9lByXbLY1IYd/view?usp=share_link)
+WavLM Base+ | [60k hrs Libri-Light](https://github.com/facebookresearch/libri-light) + [10k hrs GigaSpeech](https://github.com/SpeechColab/GigaSpeech) + [24k hrs VoxPopuli](https://github.com/facebookresearch/voxpopuli/tree/main)| -  |  [Azure Storage](https://valle.blob.core.windows.net/share/wavlm/WavLM-Base+.pt?sv=2021-10-04&st=2024-04-04T07%3A15%3A11Z&se=2034-04-05T07%3A15%3A00Z&sr=c&sp=rl&sig=xH3MbkMqHPLBI5gN%2Frt9H4J8Ai%2BtUnkduo7KGpkLbdA%3D) <br> [Google Drive](https://drive.google.com/file/d/1-zlAj2SyVJVsbhifwpTlAfrgc9qu-HDb/view?usp=share_link) 
+WavLM Large | [60k hrs Libri-Light](https://github.com/facebookresearch/libri-light) + [10k hrs GigaSpeech](https://github.com/SpeechColab/GigaSpeech) + [24k hrs VoxPopuli](https://github.com/facebookresearch/voxpopuli/tree/main)| -  | [Azure Storage](https://valle.blob.core.windows.net/share/wavlm/WavLM-Large.pt?sv=2021-10-04&st=2024-04-04T07%3A15%3A11Z&se=2034-04-05T07%3A15%3A00Z&sr=c&sp=rl&sig=xH3MbkMqHPLBI5gN%2Frt9H4J8Ai%2BtUnkduo7KGpkLbdA%3D) <br> [Google Drive](https://drive.google.com/file/d/12-cB34qCTvByWT-QtOcZaqwwO21FLSqU/view?usp=share_link)
 
-## Load Pre-Trained Models for Inference
+## Load Pre-Trained Models
 
 ```python
 import torch
@@ -30,16 +33,21 @@ model = WavLM(cfg)
 model.load_state_dict(checkpoint['model'])
 model.eval()
 
-# extract the the representation of last layer
+# extract the representation of last layer
 wav_input_16khz = torch.randn(1,10000)
+if cfg.normalize:
+    wav_input_16khz = torch.nn.functional.layer_norm(wav_input_16khz, wav_input_16khz.shape)
 rep = model.extract_features(wav_input_16khz)[0]
 
-# extract the the representation of each layer
+# extract the representation of each layer
 wav_input_16khz = torch.randn(1,10000)
+if cfg.normalize:
+    wav_input_16khz = torch.nn.functional.layer_norm(wav_input_16khz, wav_input_16khz.shape)
 rep, layer_results = model.extract_features(wav_input_16khz, output_layer=model.cfg.encoder_layers, ret_layer_results=True)[0]
 layer_reps = [x.transpose(0, 1) for x, _ in layer_results]
 ```
 
+HuggingFace and [s3prl](https://github.com/s3prl/s3prl) both support our models. It is very easy to fine-tune our models on different downstream tasks. We suggest you to extract representation of each layer and weighted sum the representations.
 
 ## Universal Representation Evaluation on SUPERB 
 ![alt text](WavLM_SUPERB_Results.png)
@@ -62,7 +70,6 @@ Evaluate on the [VoxCeleb](https://www.robots.ox.ac.uk/~vgg/data/voxceleb/#:~:te
 | Wav2Vec2.0 (XLSR) | No| 0.564|	0.605	|1.23|   
 | UniSpeech-SAT large | No | 0.564 | 0.561| 1.23 |
 | **WavLM large** | No | **0.431** | **0.538**| **1.154** |
-
 
 
 ### Speech Separation
@@ -97,6 +104,10 @@ Evaluate on the [LibriSpeech](https://www.openslr.org/12)
 ![alt text](WavLM_ASR.PNG)
 
 
+## More Speech Pre-Trained  Models
+Please visit [here](https://github.com/microsoft/UniSpeech) for more interesting and effective pre-trained models
+
+
 ## License
 This project is licensed under the license found in the LICENSE file in the root directory of this source tree.
 Portions of the source code are based on the [FAIRSEQ](https://github.com/pytorch/fairseq) project.
@@ -109,7 +120,7 @@ If you find our work is useful in your research, please cite the following paper
 ``` latex
 @article{Chen2021WavLM,
   title   = {WavLM: Large-Scale Self-Supervised  Pre-training   for Full Stack Speech Processing},
-  author  = {Sanyuan Chen and Chengyi Wang and Zhengyang Chen and Yu Wu and Shujie Liu and Zhuo Chen and Jinyu Li and Naoyuki Kanda and Takuya Yoshioka and Xiong Xiao and Jian Wu and Long Zhou and Shuo Ren and Yanmin Qian and Yao Qian and Jian Wu and Micheal Zeng and Furu Wei},
+  author  = {Sanyuan Chen and Chengyi Wang and Zhengyang Chen and Yu Wu and Shujie Liu and Zhuo Chen and Jinyu Li and Naoyuki Kanda and Takuya Yoshioka and Xiong Xiao and Jian Wu and Long Zhou and Shuo Ren and Yanmin Qian and Yao Qian and Jian Wu and Michael Zeng and Furu Wei},
   eprint={2110.13900},
   archivePrefix={arXiv},
   primaryClass={cs.CL},
