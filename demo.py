@@ -6,6 +6,7 @@ sys.path.append(os.getcwd())
 
 import os.path as osp
 import pickle
+from functools import lru_cache
 
 import cv2
 import imageio
@@ -17,6 +18,7 @@ import trimesh
 from models.consts import speaker_id
 from moviepy.editor import AudioFileClip, VideoFileClip
 from pyrender.constants import RenderFlags
+from tqdm import tqdm
 from trainer.config import load_JsonConfig
 from trainer.options import parse_args
 from trainer.smplx_body_retnet import TrainWrapper as s2a_body_retnet
@@ -25,34 +27,30 @@ from trainer.smplx_face import TrainWrapper as s2a_face
 from transformers import Wav2Vec2Processor
 
 
+@lru_cache(maxsize=1)
+def _get_smplx_model():
+    # Cache the SMPL-X model to avoid re-loading weights repeatedly (can be very memory-heavy)
+    return smplx.create(
+        model_path=r"visualise/smplx/SMPLX_NEUTRAL.npz",
+        model_type="smplx",
+        use_face_contour=False,
+        num_betas=300,
+        num_expression_coeffs=100,
+        ext="npz",
+        use_pca=False,
+        dtype=torch.float32,
+    )
+
+
 def render_pose(beta, pose, expression, file_name, audio_path):
+    model = _get_smplx_model()
     if torch.cuda.is_available():
         pose = pose.cuda()
-        model = smplx.create(
-            model_path=r"visualise/smplx/SMPLX_NEUTRAL.npz",
-            model_type="smplx",
-            use_face_contour=False,
-            num_betas=300,
-            num_expression_coeffs=100,
-            ext="npz",
-            use_pca=False,
-            dtype=torch.float32,
-        ).cuda()
-
+        model = model.cuda()
         betas = torch.tensor(beta).to(torch.float32).cuda()
     else:
         pose = pose.cpu()
-        model = smplx.create(
-            model_path=r"visualise/smplx/SMPLX_NEUTRAL.npz",
-            model_type="smplx",
-            use_face_contour=False,
-            num_betas=300,
-            num_expression_coeffs=100,
-            ext="npz",
-            use_pca=False,
-            dtype=torch.float32,
-        )
-
+        model = model.cpu()
         betas = torch.tensor(beta).to(torch.float32)
 
     jaw_pose = expression[:, 0:3]  # (1*3)
@@ -64,19 +62,20 @@ def render_pose(beta, pose, expression, file_name, audio_path):
     left_hand_pose = pose[:, 78:123]  # (15*3)
     right_hand_pose = pose[:, 123:168]  # (15*3)
     expression = expression[:, 3:]
-    output = model(
-        betas=betas,
-        expression=expression,
-        global_orient=global_orient,
-        body_pose=body_pose,
-        jaw_pose=jaw_pose,
-        leye_pose=leye_pose,
-        reye_pose=reye_pose,
-        left_hand_pose=left_hand_pose,
-        right_hand_pose=right_hand_pose,
-        transl=trans_pose,
-        return_verts=True,
-    )
+    with torch.no_grad():
+        output = model(
+            betas=betas,
+            expression=expression,
+            global_orient=global_orient,
+            body_pose=body_pose,
+            jaw_pose=jaw_pose,
+            leye_pose=leye_pose,
+            reye_pose=reye_pose,
+            left_hand_pose=left_hand_pose,
+            right_hand_pose=right_hand_pose,
+            transl=trans_pose,
+            return_verts=True,
+        )
 
     vertices = output.vertices.detach().cpu().numpy().squeeze()
     vertices_all = np.array(vertices).reshape(-1, 10475, 3)
@@ -100,8 +99,12 @@ def render_pose(beta, pose, expression, file_name, audio_path):
         ]
     ).reshape(-1, 3)
 
-    vid = []
-    from tqdm import tqdm
+    # Stream frames directly to dist to avoid holding the whole video in RAM.
+    os.makedirs("videos", exist_ok=True)
+    os.makedirs("test_pictures", exist_ok=True)
+    video_path = osp.join(r"videos", file_name + ".mp4")
+    writer = imageio.get_writer(video_path, fps=30)
+    renderer = None
 
     for frame, vertices in tqdm(
         enumerate(vertices_all), total=len(vertices_all), desc="Rendering", unit="frame"
@@ -185,29 +188,75 @@ def render_pose(beta, pose, expression, file_name, audio_path):
         camera_pose[:3, 3] = camera_rotation @ camera_translation
         scene.add(camera, pose=camera_pose)
 
-        renderer = pyrender.OffscreenRenderer(
-            viewport_width=resolution[0] * 2,
-            viewport_height=resolution[1] * 2,
-            point_size=1.0,
-        )
+        if renderer is None:
+            renderer = pyrender.OffscreenRenderer(
+                viewport_width=resolution[0] * 2,
+                viewport_height=resolution[1] * 2,
+                point_size=1.0,
+            )
         rgb, _ = renderer.render(scene, flags=RenderFlags.SHADOWS_DIRECTIONAL)
-        cv2.imwrite(osp.join(r"test_pictures", str(frame) + ".jpg"), rgb)
+        # OpenCV uses BGR order by default
+        cv2.imwrite(
+            osp.join(r"test_pictures", str(frame) + ".jpg"),
+            cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
+        )
+        # imageio expects RGB order, pyrender returns RGB already, keep as-is.
+        writer.append_data(rgb)
 
-        vid.append(rgb)
+        # Help GC for large per-frame objects (scene contains GPU handles/textures/etc.)
+        try:
+            scene.clear()
+        except Exception:
+            pass
+        del scene
 
-    out = np.stack(vid, axis=0)
-    out = out[:, :, :, [2, 1, 0]]
-    video_path = osp.join(r"videos", file_name + ".mp4")
-    imageio.mimsave(video_path, out, fps=30)
+    # Ensure we release renderer + writer even if rendering errors occur.
+    writer.close()
+    if renderer is not None:
+        try:
+            renderer.delete()
+        except Exception:
+            pass
+
+    # Add audio track and close moviepy resources explicitly
     video = VideoFileClip(video_path)
-    videos = video.set_audio(AudioFileClip(audio_path))
-    videos.write_videofile(
-        osp.join(r"videos", file_name + "_audio.mp4"),
-        audio_codec="libmp3lame",
-        verbose=False,
-        logger=None,
-    )
-    os.remove(video_path)
+    audio_clip = AudioFileClip(audio_path)
+    # Ensure audio duration matches the generated video duration to avoid empty/trimmed audio tracks
+    try:
+        audio_clip = audio_clip.set_duration(video.duration)
+    except Exception:
+        pass
+    videos = video.set_audio(audio_clip)
+    try:
+        videos.write_videofile(
+            osp.join(r"videos", file_name + "_audio.mp4"),
+            codec="libx264",
+            fps=30,
+            audio_codec="aac",
+            temp_audiofile=osp.join(r"videos", file_name + "_temp_audio.m4a"),
+            remove_temp=True,
+            verbose=False,
+            logger=None,
+        )
+    finally:
+        try:
+            videos.close()
+        except Exception:
+            pass
+        try:
+            video.close()
+        except Exception:
+            pass
+        try:
+            audio_clip.close()
+        except Exception:
+            pass
+        # Keep the silent video file (`video_path`) by default.
+        # If you want to auto-clean it up, uncomment the block below.
+        # try:
+        #     os.remove(video_path)
+        # except Exception:
+        #     pass
 
 
 def init_model(model_name, model_path, args, config):
